@@ -243,8 +243,14 @@ html,body{
       <li>Sign up → подтверди email</li>
       <li>API Keys → Create API Key → скопируй</li>
     </ol>
-    <input class="api-input" id="apiKeyInput" type="password"
-      placeholder="gsk_...">
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <input class="api-input" id="apiKeyInput" type="password"
+        placeholder="gsk_..." style="margin-top:0;flex:1;">
+      <button onclick="pasteKey()" style="padding:0 14px;border-radius:8px;
+        border:1px solid var(--accent);background:rgba(0,212,255,0.1);
+        color:var(--accent);font-family:var(--mono);font-size:12px;
+        cursor:pointer;flex-shrink:0;white-space:nowrap;">📋 Вставить</button>
+    </div>
     <select class="model-select" id="modelSelect">
       <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B — умнее всего ⭐</option>
       <option value="llama-3.1-8b-instant">LLaMA 3.1 8B — молниеносно быстрый</option>
@@ -368,6 +374,15 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('setup').classList.remove('hidden');
   }
 });
+
+async function pasteKey() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('apiKeyInput').value = text.trim();
+  } catch {
+    alert('Разреши доступ к буферу обмена или вставь вручную (долгое нажатие на поле)');
+  }
+}
 
 function startJarvis() {
   const key = document.getElementById('apiKeyInput').value.trim();

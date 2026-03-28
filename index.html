@@ -236,21 +236,20 @@ html,body{
   <div class="setup-sub">FIRST TIME SETUP</div>
 
   <div class="setup-card">
-    <h3>🔑 API КЛЮЧ TOGETHER AI</h3>
-    <p>Бесплатно. Регистрация 30 секунд.</p>
+    <h3>🔑 API КЛЮЧ GROQ</h3>
+    <p>Бесплатно. Самый быстрый AI в мире. Регистрация 1 минута.</p>
     <ol>
-      <li>Открой <a href="https://api.together.xyz" target="_blank"><b>api.together.xyz</b></a></li>
+      <li>Открой <a href="https://console.groq.com" target="_blank"><b>console.groq.com</b></a></li>
       <li>Sign up → подтверди email</li>
-      <li>API Keys → Create → скопируй</li>
+      <li>API Keys → Create API Key → скопируй</li>
     </ol>
     <input class="api-input" id="apiKeyInput" type="password"
-      placeholder="Вставь API ключ сюда...">
+      placeholder="gsk_...">
     <select class="model-select" id="modelSelect">
-      <option value="meta-llama/Llama-3-70b-chat-hf">LLaMA 3 70B — умнее всего ⭐</option>
-      <option value="meta-llama/Llama-3-8b-chat-hf">LLaMA 3 8B — быстрее</option>
-      <option value="mistralai/Mixtral-8x7B-Instruct-v0.1">Mixtral 8x7B — хорошо для кода</option>
-      <option value="microsoft/WizardLM-2-8x22B">WizardLM 2 — сильные рассуждения</option>
-      <option value="NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO">Nous Hermes 2 — без цензуры</option>
+      <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B — умнее всего ⭐</option>
+      <option value="llama-3.1-8b-instant">LLaMA 3.1 8B — молниеносно быстрый</option>
+      <option value="mixtral-8x7b-32768">Mixtral 8x7B — отличен для кода</option>
+      <option value="gemma2-9b-it">Gemma 2 9B — Google модель</option>
     </select>
   </div>
 
@@ -277,7 +276,7 @@ html,body{
 
   <div class="model-badge">
     <div class="mbdot"></div>
-    <div class="mbtext">Together AI · <b id="modelName">LLaMA 3 70B</b></div>
+    <div class="mbtext">Groq Cloud · <b id="modelName">LLaMA 3.3 70B</b></div>
     <button class="mbchange" onclick="showModelPanel()">сменить</button>
   </div>
 
@@ -316,25 +315,21 @@ html,body{
 <div class="overlay" id="modelPanel" onclick="hideModelPanel(event)">
   <div class="panel" onclick="event.stopPropagation()">
     <h2>⚙ ВЫБОР МОДЕЛИ</h2>
-    <button class="panel-btn" onclick="setModel('meta-llama/Llama-3-70b-chat-hf','LLaMA 3 70B')">
-      LLaMA 3 70B ⭐
-      <small>Самая умная · хороша для всего</small>
+    <button class="panel-btn" onclick="setModel('llama-3.3-70b-versatile','LLaMA 3.3 70B')">
+      LLaMA 3.3 70B ⭐
+      <small>Самая умная на Groq · лучший выбор</small>
     </button>
-    <button class="panel-btn" onclick="setModel('meta-llama/Llama-3-8b-chat-hf','LLaMA 3 8B')">
-      LLaMA 3 8B
-      <small>Быстрее · для простых задач</small>
+    <button class="panel-btn" onclick="setModel('llama-3.1-8b-instant','LLaMA 3.1 8B Instant')">
+      LLaMA 3.1 8B Instant
+      <small>Молниеносно быстрая · простые задачи</small>
     </button>
-    <button class="panel-btn" onclick="setModel('mistralai/Mixtral-8x7B-Instruct-v0.1','Mixtral 8x7B')">
+    <button class="panel-btn" onclick="setModel('mixtral-8x7b-32768','Mixtral 8x7B')">
       Mixtral 8x7B
-      <small>Отличная для кода и анализа</small>
+      <small>32k контекст · отличная для кода</small>
     </button>
-    <button class="panel-btn" onclick="setModel('NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO','Nous Hermes 2')">
-      Nous Hermes 2
-      <small>Меньше ограничений · технические запросы</small>
-    </button>
-    <button class="panel-btn" onclick="setModel('microsoft/WizardLM-2-8x22B','WizardLM 2 8x22B')">
-      WizardLM 2 8x22B
-      <small>Лучшая для сложных рассуждений</small>
+    <button class="panel-btn" onclick="setModel('gemma2-9b-it','Gemma 2 9B')">
+      Gemma 2 9B
+      <small>Google модель · быстрая и точная</small>
     </button>
     <button class="panel-close" onclick="hideModelPanel()">Закрыть</button>
   </div>
@@ -349,9 +344,9 @@ html,body{
 
 <script>
 // ── State ─────────────────────────────────────────────────────────────────
-let API_KEY = localStorage.getItem('together_key') || '';
-let MODEL   = localStorage.getItem('together_model') || 'meta-llama/Llama-3-70b-chat-hf';
-let MODEL_NAME = localStorage.getItem('together_model_name') || 'LLaMA 3 70B';
+let API_KEY = localStorage.getItem('groq_key') || '';
+let MODEL   = localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile';
+let MODEL_NAME = localStorage.getItem('groq_model_name') || 'LLaMA 3.3 70B';
 let history = [];
 let isLoading = false;
 
@@ -381,9 +376,9 @@ function startJarvis() {
   API_KEY = key;
   MODEL = sel.value;
   MODEL_NAME = sel.options[sel.selectedIndex].text.split('—')[0].trim();
-  localStorage.setItem('together_key', API_KEY);
-  localStorage.setItem('together_model', MODEL);
-  localStorage.setItem('together_model_name', MODEL_NAME);
+  localStorage.setItem('groq_key', API_KEY);
+  localStorage.setItem('groq_model', MODEL);
+  localStorage.setItem('groq_model_name', MODEL_NAME);
   enterMain();
 }
 
@@ -450,10 +445,10 @@ async function sendMsg() {
 async function callTogether(userMsg) {
   const messages = [
     { role: 'system', content: SYSTEM },
-    ...history.slice(-20), // last 10 pairs for context
+    ...history.slice(-20),
   ];
 
-  const res = await fetch('https://api.together.xyz/v1/chat/completions', {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${API_KEY}`,
@@ -543,8 +538,8 @@ function showTyping(show) {
 // ── Model ─────────────────────────────────────────────────────────────────
 function setModel(id, name) {
   MODEL = id; MODEL_NAME = name;
-  localStorage.setItem('together_model', MODEL);
-  localStorage.setItem('together_model_name', MODEL_NAME);
+  localStorage.setItem('groq_model', MODEL);
+  localStorage.setItem('groq_model_name', MODEL_NAME);
   updateModelUI();
   hideModelPanel();
   addMsg('jarvis', `Модель переключена на **${name}**. Продолжаем с тем же контекстом.`);

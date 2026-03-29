@@ -224,6 +224,31 @@ html,body{
   background:transparent;color:var(--muted);font-family:var(--mono);
   font-size:12px;cursor:pointer;margin-top:4px;}
 
+/* Simulator */
+.sim-panel{background:var(--panel);}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.sim-field{display:flex;flex-direction:column;gap:4px;}
+.sim-field label{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.sim-field input,.sim-field select{background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--mono);
+  font-size:12px;outline:none;width:100%;}
+.sim-field input:focus,.sim-field select:focus{border-color:var(--accent);}
+.sim-run-btn{width:100%;padding:12px;border-radius:10px;border:none;
+  background:var(--accent);color:var(--bg);font-family:var(--mono);
+  font-size:13px;font-weight:600;cursor:pointer;letter-spacing:1px;margin-bottom:12px;}
+.sim-run-btn:active{opacity:.85;}
+.sim-result{background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  border-radius:8px;padding:12px;font-family:var(--mono);font-size:12px;
+  line-height:1.8;color:var(--text);margin-bottom:10px;}
+.sim-result.hidden{display:none;}
+.sim-canvas{width:100%;border:1px solid var(--border);border-radius:8px;
+  background:rgba(0,0,0,0.5);}
+.sim-canvas.hidden{display:none;}
+.sim-val{color:var(--accent);font-weight:600;}
+.sim-warn{color:var(--orange);}
+.sim-ok{color:var(--green);}
+.sim-bad{color:var(--red);}
+
 /* Toast */
 .toast{display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
   background:var(--panel);border:1px solid var(--red);border-radius:10px;
@@ -299,14 +324,14 @@ html,body{
 
   <!-- Engineering quick tools -->
   <div class="qtools" id="qtools">
-    <button class="qtool" onclick="quickAsk('ракета')">🚀 Ракета</button>
+    <button class="qtool" onclick="openSim('rocket')">🚀 Ракета</button>
+    <button class="qtool" onclick="openSim('car')">🚗 Машина</button>
+    <button class="qtool" onclick="openSim('motor')">⚙️ Двигатель</button>
     <button class="qtool" onclick="quickAsk('радио')">📡 Радио</button>
     <button class="qtool" onclick="quickAsk('схема')">⚡ Схема</button>
-    <button class="qtool" onclick="quickAsk('двигатель')">⚙️ Двигатель</button>
     <button class="qtool" onclick="quickAsk('химия')">🧪 Химия</button>
-    <button class="qtool" onclick="quickAsk('код')">💻 Код</button>
-    <button class="qtool" onclick="quickAsk('расчёт')">📐 Расчёт</button>
     <button class="qtool" onclick="quickAsk('антенна')">📶 Антенна</button>
+    <button class="qtool" onclick="quickAsk('код')">💻 Код</button>
   </div>
 
   <div class="chat" id="chat"></div>
@@ -338,6 +363,67 @@ html,body{
   </div>
 </div>
 
+</div>
+
+<!-- ── SIMULATOR ── -->
+<div class="overlay" id="simPanel" onclick="hideSimPanel(event)">
+  <div class="panel sim-panel" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px 16px 24px">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <h2 style="margin:0;flex:1" id="simTitle">🚀 Симулятор ракеты</h2>
+      <button class="panel-close" onclick="hideSimPanel()" style="width:auto;padding:5px 12px;margin:0">✕</button>
+    </div>
+
+    <!-- Rocket sim -->
+    <div id="simRocket">
+      <div class="sim-grid">
+        <div class="sim-field"><label>Масса ракеты (кг)</label><input type="number" id="rMass" value="5" min="0.1"></div>
+        <div class="sim-field"><label>Масса топлива (кг)</label><input type="number" id="rFuel" value="2" min="0.1"></div>
+        <div class="sim-field"><label>Тяга двигателя (Н)</label><input type="number" id="rThrust" value="150" min="1"></div>
+        <div class="sim-field"><label>Удельный импульс (с)</label><input type="number" id="rIsp" value="120" min="10"></div>
+        <div class="sim-field"><label>Диаметр (м)</label><input type="number" id="rDiam" value="0.08" min="0.01" step="0.01"></div>
+        <div class="sim-field"><label>Cd (аэродинамика)</label><input type="number" id="rCd" value="0.4" min="0.1" step="0.1"></div>
+      </div>
+      <button class="sim-run-btn" onclick="runRocketSim()">▶ ЗАПУСТИТЬ СИМУЛЯЦИЮ</button>
+      <div id="rocketResult" class="sim-result hidden"></div>
+      <canvas id="rocketCanvas" class="sim-canvas hidden" height="200"></canvas>
+    </div>
+
+    <!-- Car sim -->
+    <div id="simCar" class="hidden">
+      <div class="sim-grid">
+        <div class="sim-field"><label>Масса (кг)</label><input type="number" id="cMass" value="800" min="100"></div>
+        <div class="sim-field"><label>Мощность двигателя (л.с.)</label><input type="number" id="cPower" value="100" min="10"></div>
+        <div class="sim-field"><label>Крутящий момент (Нм)</label><input type="number" id="cTorque" value="150" min="10"></div>
+        <div class="sim-field"><label>Cd (аэро)</label><input type="number" id="cCd" value="0.35" min="0.1" step="0.05"></div>
+        <div class="sim-field"><label>Площадь фронта (м²)</label><input type="number" id="cArea" value="2.2" min="0.5" step="0.1"></div>
+        <div class="sim-field"><label>КПД трансмиссии (%)</label><input type="number" id="cEff" value="85" min="50" max="100"></div>
+      </div>
+      <button class="sim-run-btn" onclick="runCarSim()">▶ ЗАПУСТИТЬ СИМУЛЯЦИЮ</button>
+      <div id="carResult" class="sim-result hidden"></div>
+      <canvas id="carCanvas" class="sim-canvas hidden" height="200"></canvas>
+    </div>
+
+    <!-- Motor sim -->
+    <div id="simMotor" class="hidden">
+      <div class="sim-grid">
+        <div class="sim-field"><label>Тип топлива</label>
+          <select id="mFuel" class="model-select" style="margin:0">
+            <option value="kno3_sugar">КНО₃ + сахар (65/35)</option>
+            <option value="kno3_sorbitol">КНО₃ + сорбит (65/35)</option>
+            <option value="ap_htpb">AP + HTPB (твёрдое)</option>
+            <option value="lox_kerosene">LOX + керосин (жидкое)</option>
+          </select>
+        </div>
+        <div class="sim-field"><label>Масса топлива (г)</label><input type="number" id="mFuelMass" value="200" min="10"></div>
+        <div class="sim-field"><label>Диаметр сопла (мм)</label><input type="number" id="mNozzle" value="12" min="3"></div>
+        <div class="sim-field"><label>Длина зерна (мм)</label><input type="number" id="mGrain" value="150" min="20"></div>
+      </div>
+      <button class="sim-run-btn" onclick="runMotorSim()">▶ РАССЧИТАТЬ ДВИГАТЕЛЬ</button>
+      <div id="motorResult" class="sim-result hidden"></div>
+    </div>
+
+  </div>
 </div>
 
 <!-- Model panel -->
@@ -372,7 +458,239 @@ html,body{
 </div>
 
 <script>
-// ── Firebase ──────────────────────────────────────────────────────────────
+// ── SIMULATOR ─────────────────────────────────────────────────────────────
+const G = 9.81, RHO_AIR = 1.225;
+
+function openSim(type) {
+  document.getElementById('simRocket').classList.add('hidden');
+  document.getElementById('simCar').classList.add('hidden');
+  document.getElementById('simMotor').classList.add('hidden');
+  const titles = { rocket:'🚀 Симулятор ракеты', car:'🚗 Симулятор разгона', motor:'⚙️ Расчёт двигателя' };
+  document.getElementById('simTitle').textContent = titles[type];
+  document.getElementById('sim' + type.charAt(0).toUpperCase() + type.slice(1)).classList.remove('hidden');
+  document.getElementById('simPanel').classList.add('show');
+}
+function hideSimPanel(e) {
+  if (!e || e.target === document.getElementById('simPanel'))
+    document.getElementById('simPanel').classList.remove('show');
+}
+
+// ── Rocket simulator (Tsiolkovsky + drag + gravity, RK4) ──────────────────
+function runRocketSim() {
+  const m0    = parseFloat(document.getElementById('rMass').value);
+  const mFuel = parseFloat(document.getElementById('rFuel').value);
+  const F     = parseFloat(document.getElementById('rThrust').value);
+  const Isp   = parseFloat(document.getElementById('rIsp').value);
+  const d     = parseFloat(document.getElementById('rDiam').value);
+  const Cd    = parseFloat(document.getElementById('rCd').value);
+
+  const ve    = Isp * G;                    // exhaust velocity m/s
+  const mdot  = F / ve;                     // mass flow rate kg/s
+  const A     = Math.PI * (d/2) ** 2;       // cross section m²
+  const tBurn = mFuel / mdot;               // burn time s
+
+  // Numerical integration (RK4, dt=0.01s)
+  const dt = 0.01;
+  let t = 0, v = 0, h = 0;
+  let maxV = 0, maxH = 0, maxA = 0;
+  const hData = [], vData = [], tData = [];
+
+  while (t < tBurn + 30) {
+    const m = Math.max(m0 - mFuel, t < tBurn ? m0 - mdot * t : m0 - mFuel);
+    const thrust = t < tBurn ? F : 0;
+    const drag = 0.5 * RHO_AIR * Cd * A * v * Math.abs(v);
+    const a = (thrust - drag - m * G) / m;
+
+    v += a * dt;
+    if (h <= 0 && v < 0) { v = 0; break; }
+    h = Math.max(0, h + v * dt);
+    t += dt;
+
+    maxV = Math.max(maxV, v);
+    maxH = Math.max(maxH, h);
+    maxA = Math.max(maxA, Math.abs(a) / G);
+
+    if (t % 0.5 < dt) { tData.push(+t.toFixed(1)); hData.push(+h.toFixed(1)); vData.push(+v.toFixed(1)); }
+  }
+
+  const TWR = F / (m0 * G);
+  const dV = ve * Math.log(m0 / (m0 - mFuel));
+
+  const res = document.getElementById('rocketResult');
+  res.classList.remove('hidden');
+  res.innerHTML = `
+<span class="${TWR > 1 ? 'sim-ok' : 'sim-bad'}">TWR: <b class="sim-val">${TWR.toFixed(2)}</b> ${TWR > 1 ? '✓ взлетит' : '✗ не взлетит (нужно > 1)'}</span>
+Δv (Циолковский): <b class="sim-val">${dV.toFixed(1)} м/с</b>
+Время горения: <b class="sim-val">${tBurn.toFixed(2)} с</b>
+Макс. высота: <b class="sim-val">${maxH.toFixed(1)} м</b>
+Макс. скорость: <b class="sim-val">${maxV.toFixed(1)} м/с (${(maxV/340).toFixed(3)} Маха)</b>
+Макс. перегрузка: <b class="sim-val">${maxA.toFixed(1)} g</b>
+Расход топлива: <b class="sim-val">${mdot.toFixed(3)} кг/с</b>`;
+
+  drawChart('rocketCanvas', tData, hData, 'Высота (м)', '#00d4ff');
+}
+
+// ── Car simulator (Newton + aero drag + rolling resistance) ──────────────
+function runCarSim() {
+  const mass   = parseFloat(document.getElementById('cMass').value);
+  const hp     = parseFloat(document.getElementById('cPower').value);
+  const torque = parseFloat(document.getElementById('cTorque').value);
+  const Cd     = parseFloat(document.getElementById('cCd').value);
+  const area   = parseFloat(document.getElementById('cArea').value);
+  const eff    = parseFloat(document.getElementById('cEff').value) / 100;
+
+  const P = hp * 735.5 * eff;   // Watts
+  const Cr = 0.015;              // rolling resistance
+  const dt = 0.05;
+  let v = 0, t = 0, d = 0;
+  const vData = [], tData = [], dData = [];
+  let t100 = null, t200 = null, vMax = 0;
+
+  while (t < 60 && v < 120) {
+    const Fdrag = 0.5 * RHO_AIR * Cd * area * v * v;
+    const Froll = mass * G * Cr;
+    const Fdrive = v > 0.5 ? P / v : torque * 5; // low speed: use torque
+    const Fnet = Math.min(Fdrive, mass * 8) - Fdrag - Froll; // cap at 0.8g
+    const a = Math.max(0, Fnet / mass);
+
+    v += a * dt;
+    d += v * dt;
+    t += dt;
+    vMax = Math.max(vMax, v);
+
+    const vKmh = v * 3.6;
+    if (!t100 && vKmh >= 100) t100 = t;
+    if (!t200 && vKmh >= 200) t200 = t;
+
+    if (Math.round(t * 10) % 5 === 0) {
+      tData.push(+t.toFixed(1));
+      vData.push(+(v * 3.6).toFixed(1));
+      dData.push(+d.toFixed(0));
+    }
+  }
+
+  // Top speed (where drive = drag)
+  const vTop = Math.cbrt((2 * P) / (RHO_AIR * Cd * area)) * 3.6;
+
+  const res = document.getElementById('carResult');
+  res.classList.remove('hidden');
+  res.innerHTML = `
+Мощность (с КПД): <b class="sim-val">${(P/735.5).toFixed(1)} л.с. / ${(P/1000).toFixed(1)} кВт</b>
+0–100 км/ч: <b class="sim-val">${t100 ? t100.toFixed(2) + ' с' : '> 60 с'}</b>
+0–200 км/ч: <b class="sim-val">${t200 ? t200.toFixed(2) + ' с' : 'не достигнуто'}</b>
+Макс. скорость (теор.): <b class="sim-val">${vTop.toFixed(1)} км/ч</b>
+Тяговооружённость: <b class="sim-val">${((torque * 5) / (mass * G)).toFixed(2)}</b>
+Аэро сопротивление @100: <b class="sim-val">${(0.5 * RHO_AIR * Cd * area * (100/3.6)**2).toFixed(0)} Н</b>`;
+
+  drawChart('carCanvas', tData, vData, 'Скорость (км/ч)', '#00ff88');
+}
+
+// ── Motor fuel calculator ─────────────────────────────────────────────────
+function runMotorSim() {
+  const fuelType = document.getElementById('mFuel').value;
+  const mFuel = parseFloat(document.getElementById('mFuelMass').value) / 1000; // kg
+  const dNozzle = parseFloat(document.getElementById('mNozzle').value) / 1000; // m
+  const lGrain = parseFloat(document.getElementById('mGrain').value) / 1000;   // m
+
+  const fuels = {
+    kno3_sugar:    { name:'КНО₃/Сахар',   Isp:120, rho:1800, burnRate:8,  OF:'65/35' },
+    kno3_sorbitol: { name:'КНО₃/Сорбит',  Isp:130, rho:1820, burnRate:6,  OF:'65/35' },
+    ap_htpb:       { name:'AP/HTPB',       Isp:245, rho:1750, burnRate:10, OF:'80/20' },
+    lox_kerosene:  { name:'LOX/Керосин',   Isp:310, rho:null, burnRate:null,OF:'2.7:1' }
+  };
+
+  const f = fuels[fuelType];
+  const ve = f.Isp * G;
+  const Atnozzle = Math.PI * (dNozzle/2) ** 2;
+
+  let result = `Топливо: <b class="sim-val">${f.name}</b> (${f.OF})
+Уд. импульс: <b class="sim-val">${f.Isp} с</b>
+Скорость истечения: <b class="sim-val">${ve.toFixed(0)} м/с</b>\n`;
+
+  if (f.rho && f.burnRate) {
+    const vol = mFuel / f.rho;
+    const Agrain = vol / lGrain;
+    const dGrain = 2 * Math.sqrt(Agrain / Math.PI);
+    const tBurn = (dGrain/2) / (f.burnRate / 1000);
+    const mdot = mFuel / tBurn;
+    const thrust = mdot * ve;
+    const Kn = Agrain / Atnozzle;
+
+    result += `
+Масса топлива: <b class="sim-val">${(mFuel*1000).toFixed(0)} г</b>
+Диаметр зерна: <b class="sim-val">${(dGrain*1000).toFixed(1)} мм</b>
+Время горения: <b class="sim-val">${tBurn.toFixed(2)} с</b>
+Расход: <b class="sim-val">${(mdot*1000).toFixed(1)} г/с</b>
+Тяга: <b class="sim-val">${thrust.toFixed(1)} Н (${(thrust/G).toFixed(2)} кгс)</b>
+Kn (степень давления): <b class="sim-val">${Kn.toFixed(0)}</b>
+<span class="${Kn > 200 && Kn < 800 ? 'sim-ok' : 'sim-warn'}">Kn ${Kn < 200 ? '< 200 — слабое горение' : Kn > 800 ? '> 800 — опасно высокое давление' : '200-800 — норма ✓'}</span>
+Импульс: <b class="sim-val">${(thrust * tBurn).toFixed(1)} Н·с</b>`;
+  } else {
+    result += `\n<span class="sim-warn">Для жидкостного двигателя нужен более сложный расчёт — спроси Jarvis.</span>`;
+  }
+
+  const res = document.getElementById('motorResult');
+  res.classList.remove('hidden');
+  res.innerHTML = result;
+}
+
+// ── Chart drawer ──────────────────────────────────────────────────────────
+function drawChart(canvasId, xData, yData, label, color) {
+  const canvas = document.getElementById(canvasId);
+  canvas.classList.remove('hidden');
+  canvas.width = canvas.offsetWidth || 320;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = { t:20, r:10, b:30, l:45 };
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(0, 0, W, H);
+
+  const maxY = Math.max(...yData) * 1.1 || 1;
+  const maxX = Math.max(...xData) || 1;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (H - pad.t - pad.b) * (1 - i/4);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#4a7a99'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+    ctx.fillText((maxY * i / 4).toFixed(0), pad.l - 4, y + 3);
+  }
+
+  // Axis label
+  ctx.fillStyle = color; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+  ctx.fillText(label, pad.l, 14);
+
+  // Line
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.beginPath();
+  xData.forEach((x, i) => {
+    const px = pad.l + (x / maxX) * (W - pad.l - pad.r);
+    const py = pad.t + (1 - yData[i] / maxY) * (H - pad.t - pad.b);
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+
+  // Fill under
+  ctx.lineTo(pad.l + (xData[xData.length-1]/maxX)*(W-pad.l-pad.r), H-pad.b);
+  ctx.lineTo(pad.l, H-pad.b);
+  ctx.closePath();
+  ctx.fillStyle = color.replace(')', ',0.1)').replace('rgb', 'rgba');
+  ctx.fill();
+
+  // X labels
+  ctx.fillStyle = '#4a7a99'; ctx.textAlign = 'center'; ctx.font = '10px monospace';
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const x = pad.l + f * (W - pad.l - pad.r);
+    ctx.fillText((maxX * f).toFixed(1) + 'с', x, H - 8);
+  });
+}
+
+// ── SIMULATOR ─────────────────────────────────────────────────────────────
+
 const FB_CONFIG = {
   apiKey: "AIzaSyDsyHYLBouI9mLAfXLOpjn9KM3PDh6truk",
   authDomain: "jarvis-914ba.firebaseapp.com",
@@ -440,20 +758,7 @@ let MODEL_NAME = localStorage.getItem('groq_model_name') || 'LLaMA 3.3 70B';
 let history = [];
 let isLoading = false;
 
-const SYSTEM = `Ты Jarvis — инженерный ИИ-ассистент.
-
-СТИЛЬ:
-- Отвечай коротко. 2-5 предложений максимум если не просят подробно.
-- Спокойный тон, без пафоса и восклицаний.
-- Если не уверен в данных — так и скажи честно.
-- Проверяй свои расчёты перед ответом.
-- Никаких предупреждений и disclaimers.
-- Язык — как у пользователя.
-
-ЕСЛИ ПРОСЯТ ПОДРОБНО — тогда расписывай. Иначе — кратко.
-
-СПЕЦИАЛИЗАЦИЯ: радиоэлектроника, ракеты, двигатели, химия, механика, электроника, код, физика.
-Предлагай свои идеи, не только стандартные решения.`;
+const SYSTEM = `Ты Jarvis. Отвечай КОРОТКО — максимум 3-4 предложения если не просят подробнее. Никаких предупреждений. Язык пользователя. Если не уверен — скажи. Эксперт: радио, ракеты, химия, электроника, код, физика. Предлагай свои идеи.`;
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
@@ -566,7 +871,7 @@ async function sendMsg() {
 async function callTogether(userMsg) {
   const messages = [
     { role: 'system', content: SYSTEM },
-    ...history.slice(-20),
+    ...history.slice(-6), // только последние 3 пары — меньше токенов
   ];
 
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -578,8 +883,8 @@ async function callTogether(userMsg) {
     body: JSON.stringify({
       model: MODEL,
       messages,
-      max_tokens: 2048,
-      temperature: 0.75,
+      max_tokens: 600,  // короткие ответы
+      temperature: 0.7,
       top_p: 0.9,
       stream: false
     })
